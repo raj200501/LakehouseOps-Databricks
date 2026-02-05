@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta, timezone
 
+from common import get_settings
 from jose import jwt
 from passlib.context import CryptContext
 from sqlmodel import Session, select
 
 from app.models import User
-from common import get_settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -19,7 +19,11 @@ def verify_password(password: str, hashed: str) -> bool:
 
 
 def create_token(username: str, role: str) -> str:
-    payload = {"sub": username, "role": role, "exp": datetime.now(timezone.utc) + timedelta(hours=6)}
+    payload = {
+        "sub": username,
+        "role": role,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=6),
+    }
     return jwt.encode(payload, get_settings().jwt_secret, algorithm="HS256")
 
 
