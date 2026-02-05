@@ -20,7 +20,8 @@
   --success: #22c55e;
   --danger: #ef4444;
 }
-*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text)}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.45}
 .shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
 .sidebar{background:#0b1120;color:#dbeafe;padding:18px;border-right:1px solid #1f2937}
 .sidebar a{display:flex;gap:10px;color:#cbd5e1;text-decoration:none;padding:10px;border-radius:10px;margin-bottom:6px}
@@ -29,16 +30,19 @@
 .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 8px 20px rgba(15,23,42,.05)}
 .grid{display:grid;gap:12px}.kpi-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
-.btn{border:none;border-radius:10px;padding:8px 12px;cursor:pointer;background:#334155;color:white}
+.btn{border:none;border-radius:10px;padding:9px 13px;cursor:pointer;background:#334155;color:white;font-weight:600}
 .btn.primary{background:var(--accent)} .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
 .badge{padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--border)}
 .badge.success{color:var(--success)} .badge.failed{color:var(--danger)} .badge.running{color:#0ea5e9}
-.table{width:100%;border-collapse:collapse}.table th,.table td{border-bottom:1px solid var(--border);padding:10px;text-align:left;font-size:14px}
+.table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:12px;overflow:hidden}
+.table th,.table td{border-bottom:1px solid var(--border);padding:10px;text-align:left;font-size:14px}
+.table tbody tr:hover{background:color-mix(in srgb, var(--panel), var(--accent) 6%);cursor:pointer}
 .tabs{display:flex;gap:8px;margin-bottom:10px}
+input,select{padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
 .skeleton{height:16px;background:linear-gradient(90deg,#e2e8f0,#f8fafc,#e2e8f0);border-radius:6px;animation:pulse 1.3s infinite}
 .dark .skeleton{background:linear-gradient(90deg,#1e293b,#334155,#1e293b)}
 @keyframes pulse{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
 .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,.5);display:grid;place-items:center}
-.modal{width:min(720px,94vw);max-height:85vh;overflow:auto}
+.modal{width:min(820px,94vw);max-height:90vh;overflow:auto}
 .toast{position:fixed;bottom:18px;right:18px;background:var(--panel);border:1px solid var(--border);padding:10px 14px;border-radius:10px}
 .small{font-size:12px;color:var(--muted)}

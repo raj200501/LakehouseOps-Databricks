@@ -13,6 +13,7 @@ from app.security import authenticate, create_token, hash_password
 from app.services import (
     build_lineage_graph,
     build_overview_metrics,
+    generate_run_history,
     promote_model,
     reset_demo_data,
     run_demo_pipeline,
@@ -60,6 +61,8 @@ def run_pipeline(req: RunRequest, session: Session = Depends(get_session)) -> Pi
 
 @app.get("/runs")
 def list_runs(session: Session = Depends(get_session)) -> list[PipelineRun]:
+    if not session.exec(select(PipelineRun)).first():
+        seed_demo_data(session)
     return list(session.exec(select(PipelineRun).order_by(PipelineRun.id.desc())).all())
 
 
@@ -99,6 +102,11 @@ def overview_metrics(session: Session = Depends(get_session)) -> dict:
 @app.post("/admin/demo/seed")
 def admin_seed(session: Session = Depends(get_session)) -> dict:
     return seed_demo_data(session)
+
+
+@app.post("/admin/demo/history")
+def admin_history(session: Session = Depends(get_session)) -> dict[str, int]:
+    return generate_run_history(session, count=30)
 
 
 @app.post("/admin/demo/reset")
