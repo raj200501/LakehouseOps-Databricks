@@ -22,7 +22,13 @@ from app.services import (
 
 init_logging()
 app = FastAPI(title="LakehouseOps API", version="0.1.0")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
@@ -97,6 +103,18 @@ def promote(model_id: int, session: Session = Depends(get_session)) -> ModelReco
 @app.get("/overview/metrics")
 def overview_metrics(session: Session = Depends(get_session)) -> dict:
     return build_overview_metrics(session)
+
+
+@app.post("/admin/demo/start")
+def admin_start(session: Session = Depends(get_session)) -> dict[str, str | int]:
+    seed_result = (
+        seed_demo_data(session) if not session.exec(select(Dataset.id)).first() else {"datasets": 0}
+    )
+    run = run_demo_pipeline(session, "demo_pipeline")
+    return {
+        "run_id": run.id or 0,
+        "message": f"Demo started (seeded_datasets={seed_result.get('datasets', 0)})",
+    }
 
 
 @app.post("/admin/demo/seed")

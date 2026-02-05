@@ -5,15 +5,32 @@ VENV_PIP := $(VENV_PY) -m pip
 PYTHONPATH_DEV := apps/api:packages/common/src:packages/ml/src:packages/quality/src:packages/lineage/src:packages/lakehouse/src
 
 .venv:
-	@python3.11 -V >/dev/null 2>&1 || (echo "Error: python3.11 is required to create .venv. Install python3.11 and ensure it is available on PATH." && exit 1)
-	python3.11 -m venv $(VENV_DIR)
+	@PYTHON_BIN=""; \
+	for CANDIDATE in python3.11 python3; do \
+		if command -v $$CANDIDATE >/dev/null 2>&1 && $$CANDIDATE -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then \
+			PYTHON_BIN=$$CANDIDATE; \
+			break; \
+		fi; \
+	done; \
+	if [ -z "$$PYTHON_BIN" ] && command -v pyenv >/dev/null 2>&1; then \
+		PYENV_PY=$$(pyenv prefix 3.11 2>/dev/null)/bin/python3.11; \
+		if [ -x "$$PYENV_PY" ]; then \
+			PYTHON_BIN=$$PYENV_PY; \
+		fi; \
+	fi; \
+	if [ -z "$$PYTHON_BIN" ]; then \
+		echo "Error: Python 3.11+ is required. Install python3.11 and ensure python3/python3.11 is on PATH."; \
+		exit 1; \
+	fi; \
+	echo "Using $$($$PYTHON_BIN --version 2>&1) to create virtualenv."; \
+	$$PYTHON_BIN -m venv $(VENV_DIR)
 	$(VENV_PIP) install --upgrade pip
 
 bootstrap: .venv
 	$(VENV_PIP) install -e .[dev]
 	cd apps/web && npm install --no-audit --no-fund
 
-up:
+up: bootstrap
 	PYTHONPATH=$(PYTHONPATH_DEV):$${PYTHONPATH:-} $(VENV_PY) -m uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port 8000
 
 ui:
