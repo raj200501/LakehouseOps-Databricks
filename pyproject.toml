@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lakehouseops"
+version = "0.1.0"
+description = "Local-first Databricks-style lakehouse control plane"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.115.6",
+  "uvicorn[standard]==0.32.1",
+  "sqlmodel==0.0.22",
+  "alembic==1.14.0",
+  "pydantic==2.10.3",
+  "python-jose[cryptography]==3.3.0",
+  "passlib[bcrypt]==1.7.4",
+  "httpx==0.28.1",
+  "pyyaml==6.0.2",
+  "pandas==2.2.3",
+  "numpy==2.2.1",
+  "scikit-learn==1.6.0",
+  "mlflow==2.19.0",
+  "networkx==3.4.2",
+  "python-multipart==0.0.19",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==8.3.4",
+  "pytest-cov==6.0.0",
+  "ruff==0.8.3",
+  "mypy==1.13.0",
+  "types-PyYAML==6.0.12.20240917",
+  "pre-commit==4.0.1",
+]
+
+[tool.setuptools]
+packages = []
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "apps/api", "packages/common/src", "packages/lakehouse/src", "packages/quality/src", "packages/lineage/src", "packages/ml/src"]
+addopts = "-q"
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
