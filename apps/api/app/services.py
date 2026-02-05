@@ -17,6 +17,13 @@ from app.models import Dataset, LineageEdge, ModelRecord, PipelineRun, QualityRe
 RULES = ["not_null_id", "amount_range", "email_format", "pk_unique"]
 
 
+def ensure_demo_data(session: Session) -> None:
+    has_runs = session.exec(select(PipelineRun.id)).first()
+    has_datasets = session.exec(select(Dataset.id)).first()
+    if not has_runs or not has_datasets:
+        seed_demo_data(session)
+
+
 def run_demo_pipeline(session: Session, pipeline_name: str) -> PipelineRun:
     now = datetime.utcnow()
     run = PipelineRun(
@@ -256,6 +263,51 @@ def seed_demo_data(session: Session) -> dict[str, int]:
     return {"runs": 30, "datasets": 12, "models": 3}
 
 
+def generate_run_history(session: Session, count: int = 30) -> dict[str, int]:
+    now = datetime.utcnow()
+    recent_runs = list(
+        session.exec(select(PipelineRun).where(PipelineRun.started_at > now - timedelta(days=14))).all()
+    )
+    if len(recent_runs) >= count:
+        return {"runs": 0, "existing": len(recent_runs)}
+
+    pipelines = ["daily_etl", "feature_refresh", "churn_training"]
+    statuses = ["succeeded", "succeeded", "succeeded", "failed", "running"]
+    to_create = count - len(recent_runs)
+    for i in range(to_create):
+        start = now - timedelta(hours=(i + 1) * 10)
+        status = statuses[i % len(statuses)]
+        duration = 0 if status == "running" else random.randint(40_000, 220_000)
+        ended = start + timedelta(milliseconds=duration) if status != "running" else None
+        run = PipelineRun(
+            pipeline_name=pipelines[i % len(pipelines)],
+            status=status,
+            started_at=start,
+            ended_at=ended,
+            duration_ms=duration,
+            cost_estimate=round(random.uniform(1.0, 12.0), 2),
+            logs=f"Synthetic run {i + 1}: {status}",
+            steps_json=json.dumps(
+                [
+                    {"name": "extract", "status": "completed"},
+                    {
+                        "name": "transform",
+                        "status": "failed" if status == "failed" else "completed",
+                    },
+                    {
+                        "name": "publish",
+                        "status": "running" if status == "running" else "completed",
+                    },
+                ]
+            ),
+            artifacts_json=json.dumps(["pipeline_report.json", "dq_summary.json"]),
+        )
+        session.add(run)
+
+    session.commit()
+    return {"runs": to_create, "existing": len(recent_runs)}
+
+
 def reset_demo_data(session: Session) -> None:
     for model in (QualityResult, LineageEdge, ModelRecord, PipelineRun, Dataset):
         session.execute(delete(model))
@@ -263,6 +315,7 @@ def reset_demo_data(session: Session) -> None:
 
 
 def build_overview_metrics(session: Session) -> dict:
+    ensure_demo_data(session)
     runs = list(session.exec(select(PipelineRun).order_by(PipelineRun.started_at.desc())).all())
     quality = list(session.exec(select(QualityResult)).all())
     models = list(session.exec(select(ModelRecord)).all())
@@ -294,6 +347,13 @@ def build_overview_metrics(session: Session) -> dict:
 
 
 def build_lineage_graph(session: Session) -> dict:
+    ensure_demo_data(session)
+    latest_run = session.exec(select(PipelineRun).order_by(PipelineRun.started_at.desc())).first()
+    quality = list(session.exec(select(QualityResult)).all())
+    quality_by_dataset: dict[str, list[QualityResult]] = {}
+    for item in quality:
+        quality_by_dataset.setdefault(item.dataset, []).append(item)
+
     graph = LineageGraph()
     for ds in session.exec(select(Dataset)).all():
         graph.add_node(ds.name, "dataset", f"{ds.layer}:{ds.name}")
@@ -301,7 +361,28 @@ def build_lineage_graph(session: Session) -> dict:
         graph.add_node(model.name, "model", model.stage)
     for edge in session.exec(select(LineageEdge)).all():
         graph.add_edge(edge.source, edge.target, edge.label)
-    return graph.to_cytoscape()
+
+    payload = graph.to_cytoscape()
+    for node in payload["nodes"]:
+        node_id = node["data"]["id"]
+        dataset = session.exec(select(Dataset).where(Dataset.name == node_id)).first()
+        quality_items = quality_by_dataset.get(node_id, [])
+        node["data"].update(
+            {
+                "name": node_id,
+                "layer": dataset.layer if dataset else "model",
+                "last_updated": (
+                    dataset.updated_at.isoformat(timespec="seconds") if dataset else datetime.utcnow().isoformat(timespec="seconds")
+                ),
+                "last_run_status": latest_run.status if latest_run else "unknown",
+                "quality_pass_rate": round(
+                    (len([q for q in quality_items if q.passed]) / len(quality_items) * 100), 1
+                )
+                if quality_items
+                else 100.0,
+            }
+        )
+    return payload
 
 
 def promote_model(session: Session, model_id: int) -> ModelRecord | None:
