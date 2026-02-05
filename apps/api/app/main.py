@@ -10,7 +10,14 @@ from app.db import get_session, init_db
 from app.models import Dataset, ModelRecord, PipelineRun, QualityResult, User
 from app.schemas import LoginRequest, PredictRequest, RunRequest, TokenResponse
 from app.security import authenticate, create_token, hash_password
-from app.services import build_lineage_graph, run_demo_pipeline
+from app.services import (
+    build_lineage_graph,
+    build_overview_metrics,
+    promote_model,
+    reset_demo_data,
+    run_demo_pipeline,
+    seed_demo_data,
+)
 
 init_logging()
 app = FastAPI(title="LakehouseOps API", version="0.1.0")
@@ -26,13 +33,11 @@ def startup() -> None:
                 User(username="admin", password_hash=hash_password("admin123"), role="admin")
             )
             session.add(
-                User(
-                    username="analyst",
-                    password_hash=hash_password("analyst123"),
-                    role="analyst",
-                )
+                User(username="analyst", password_hash=hash_password("analyst123"), role="analyst")
             )
             session.commit()
+        if not session.exec(select(PipelineRun)).first():
+            seed_demo_data(session)
 
 
 @app.get("/health")
@@ -76,6 +81,30 @@ def lineage(session: Session = Depends(get_session)) -> dict:
 @app.get("/models")
 def models(session: Session = Depends(get_session)) -> list[ModelRecord]:
     return list(session.exec(select(ModelRecord)).all())
+
+
+@app.post("/models/{model_id}/promote")
+def promote(model_id: int, session: Session = Depends(get_session)) -> ModelRecord:
+    model = promote_model(session, model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail="model_not_found")
+    return model
+
+
+@app.get("/overview/metrics")
+def overview_metrics(session: Session = Depends(get_session)) -> dict:
+    return build_overview_metrics(session)
+
+
+@app.post("/admin/demo/seed")
+def admin_seed(session: Session = Depends(get_session)) -> dict:
+    return seed_demo_data(session)
+
+
+@app.post("/admin/demo/reset")
+def admin_reset(session: Session = Depends(get_session)) -> dict[str, str]:
+    reset_demo_data(session)
+    return {"status": "reset"}
 
 
 @app.post("/predict")
