@@ -30,6 +30,16 @@ jobs:
 
       - run: bash scripts/verify.sh
 
+      - name: Install Playwright browser
+        run: |
+          cd apps/web
+          npx playwright install chromium
+
+      - name: Run Playwright e2e + screenshots
+        run: |
+          cd apps/web
+          npm run e2e
+
       - name: Upload web build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -41,3 +51,9 @@ jobs:
         with:
           name: docs-site
           path: site
+
+      - name: Upload UI screenshots artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots
+          path: docs/assets/screens

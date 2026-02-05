@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 
-test('loads dashboard', async ({ page }) => {
+test('loads dashboard shell', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText('LakehouseOps Dashboard')).toBeVisible()
+  await expect(page.getByText('LakehouseOps')).toBeVisible()
+  await expect(page.getByText('Overview')).toBeVisible()
 })

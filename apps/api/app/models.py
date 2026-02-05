@@ -17,7 +17,11 @@ class Dataset(SQLModel, table=True):
     name: str
     layer: str
     path: str
+    owner: str = "data-platform"
+    row_count: int = 0
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
     schema_json: str = "{}"  # type: ignore[assignment]
+    schema_drift: bool = False
 
 
 class PipelineRun(SQLModel, table=True):
@@ -26,7 +30,11 @@ class PipelineRun(SQLModel, table=True):
     status: str = "pending"
     started_at: datetime
     ended_at: datetime | None = None
+    duration_ms: int = 0
+    cost_estimate: float = 0.0
     logs: str = ""
+    steps_json: str = "[]"  # type: ignore[assignment]
+    artifacts_json: str = "[]"  # type: ignore[assignment]
 
 
 class QualityResult(SQLModel, table=True):
@@ -36,6 +44,7 @@ class QualityResult(SQLModel, table=True):
     passed: bool
     failures: int
     rule: str
+    failing_rows_json: str = "[]"  # type: ignore[assignment]
 
 
 class LineageEdge(SQLModel, table=True):
@@ -51,3 +60,6 @@ class ModelRecord(SQLModel, table=True):
     stage: str = "Staging"
     accuracy: float = 0.0
     path: str
+    last_trained_at: datetime = Field(default_factory=datetime.utcnow)
+    drift_score: float = 0.0
+    history_json: str = "[]"  # type: ignore[assignment]

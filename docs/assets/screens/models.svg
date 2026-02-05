@@ -1,0 +1,10 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'>
+  <rect width='1280' height='720' fill='#f8fafc'/>
+  <rect width='220' height='720' fill='#0b1120'/>
+  <text x='24' y='44' fill='#fff' font-family='Arial' font-size='32' font-weight='700'>LakehouseOps</text>
+  <rect x='250' y='90' width='1000' height='140' rx='12' fill='#fff' stroke='#e2e8f0'/>
+  <rect x='250' y='250' width='490' height='220' rx='12' fill='#fff' stroke='#e2e8f0'/>
+  <rect x='760' y='250' width='490' height='220' rx='12' fill='#fff' stroke='#e2e8f0'/>
+  <text x='250' y='56' fill='#0f172a' font-family='Arial' font-size='42' font-weight='700'>Models</text>
+  <text x='280' y='168' fill='#64748b' font-family='Arial' font-size='24'>Databricks-style demo workspace preview</text>
+</svg>
