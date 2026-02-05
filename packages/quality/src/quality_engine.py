@@ -26,8 +26,9 @@ def evaluate_rules(df: pd.DataFrame, rules: list[dict[str, Any]]) -> list[RuleRe
         elif kind == "range":
             failures = int(((df[column] < rule["min"]) | (df[column] > rule["max"])).sum())
         elif kind == "regex":
-            pat = re.compile(rule["pattern"])
-            failures = int((~df[column].fillna("").astype(str).map(lambda v: bool(pat.match(v)))).sum())
+            pattern = re.compile(rule["pattern"])
+            matches = df[column].fillna("").astype(str).map(pattern.match).astype(bool)
+            failures = int((~matches).sum())
         else:
             failures = 0
         results.append(RuleResult(rule=kind, passed=failures == 0, failures=failures))

@@ -33,6 +33,8 @@ dev = [
   "mypy==1.13.0",
   "types-PyYAML==6.0.12.20240917",
   "pre-commit==4.0.1",
+  "mkdocs==1.6.1",
+  "mkdocs-material==9.5.49",
 ]
 
 [tool.setuptools]
@@ -43,12 +45,11 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+ignore = ["UP017"]
+
+[tool.ruff.lint.per-file-ignores]
+"apps/api/app/main.py" = ["B008"]
 
 [tool.pytest.ini_options]
 pythonpath = [".", "apps/api", "packages/common/src", "packages/lakehouse/src", "packages/quality/src", "packages/lineage/src", "packages/ml/src"]
 addopts = "-q"
-
-[tool.mypy]
-python_version = "3.11"
-strict = false
-ignore_missing_imports = true

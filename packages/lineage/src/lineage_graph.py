@@ -29,7 +29,12 @@ class LineageGraph:
         self.edges.append(Edge(source=source, target=target, label=label))
 
     def to_cytoscape(self) -> dict[str, list[dict[str, dict[str, str]]]]:
-        return {
-            "nodes": [{"data": {"id": n.id, "label": n.label, "type": n.type}} for n in self.nodes.values()],
-            "edges": [{"data": {"source": e.source, "target": e.target, "label": e.label}} for e in self.edges],
-        }
+        nodes = [
+            {"data": {"id": node.id, "label": node.label, "type": node.type}}
+            for node in self.nodes.values()
+        ]
+        edges = [
+            {"data": {"source": edge.source, "target": edge.target, "label": edge.label}}
+            for edge in self.edges
+        ]
+        return {"nodes": nodes, "edges": edges}

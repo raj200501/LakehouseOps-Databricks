@@ -4,17 +4,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
+from lineage_graph import LineageGraph
+from ml_service import MLService
+from pipeline import Asset, PipelineEngine
+from quality_engine import evaluate_rules, profile_dataframe
 from sqlmodel import Session
 
 from app.models import Dataset, LineageEdge, ModelRecord, PipelineRun, QualityResult
-from pipeline import Asset, PipelineEngine
-from lineage_graph import LineageGraph
-from ml_service import MLService
-from quality_engine import evaluate_rules, profile_dataframe
 
 
 def run_demo_pipeline(session: Session, pipeline_name: str) -> PipelineRun:
-    run = PipelineRun(pipeline_name=pipeline_name, status="running", started_at=datetime.now(timezone.utc))
+    run = PipelineRun(
+        pipeline_name=pipeline_name,
+        status="running",
+        started_at=datetime.now(timezone.utc),
+    )
     session.add(run)
     session.commit()
     session.refresh(run)
@@ -47,23 +51,52 @@ def run_demo_pipeline(session: Session, pipeline_name: str) -> PipelineRun:
     completed = engine.run()
 
     silver_df = pd.read_parquet("data/silver/customers_clean.parquet")
-    results = evaluate_rules(silver_df, [{"type": "not_null", "column": "id"}, {"type": "range", "column": "amount", "min": 0, "max": 1000}])
+    results = evaluate_rules(
+        silver_df,
+        [
+            {"type": "not_null", "column": "id"},
+            {"type": "range", "column": "amount", "min": 0, "max": 1000},
+        ],
+    )
     for item in results:
-        session.add(QualityResult(run_id=run.id or 0, dataset="customers_clean", passed=item.passed, failures=item.failures, rule=item.rule))
+        session.add(
+            QualityResult(
+                run_id=run.id or 0,
+                dataset="customers_clean",
+                passed=item.passed,
+                failures=item.failures,
+                rule=item.rule,
+            )
+        )
 
     profile = profile_dataframe(silver_df)
     run.logs = f"completed assets={completed}; profile_rows={profile['rows']}"
 
-    for layer, name in [("bronze", "customers"), ("silver", "customers_clean"), ("gold", "customer_features")]:
+    for layer, name in [
+        ("bronze", "customers"),
+        ("silver", "customers_clean"),
+        ("gold", "customer_features"),
+    ]:
         session.add(Dataset(name=name, layer=layer, path=f"data/{layer}/{name}.parquet"))
 
     session.add(LineageEdge(source="customers", target="customers_clean", label="filter"))
-    session.add(LineageEdge(source="customers_clean", target="customer_features", label="feature_eng"))
+    session.add(
+        LineageEdge(source="customers_clean", target="customer_features", label="feature_eng")
+    )
 
     gold_df = pd.read_parquet("data/gold/customer_features.parquet")
     trainer = MLService()
-    train_result = trainer.train(gold_df[["id", "amount", "amount_bucket", "label"]], target="label")
-    session.add(ModelRecord(name="churn_baseline", stage="Production", accuracy=train_result.accuracy, path=train_result.model_path))
+    train_result = trainer.train(
+        gold_df[["id", "amount", "amount_bucket", "label"]], target="label"
+    )
+    session.add(
+        ModelRecord(
+            name="churn_baseline",
+            stage="Production",
+            accuracy=train_result.accuracy,
+            path=train_result.model_path,
+        )
+    )
 
     run.status = "succeeded"
     run.ended_at = datetime.now(timezone.utc)
