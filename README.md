@@ -5,15 +5,6 @@
 
 A Databricks-style lakehouse control plane demo with medallion data assets, pipeline operations, quality monitoring, lineage exploration, and lightweight model registry workflows.
 
-## Hero screenshots
-
-![Overview dashboard](docs/assets/screens/overview.svg)
-
-| Overview | Runs | Lineage |
-|---|---|---|
-| ![Overview](docs/assets/screens/overview.svg) | ![Runs](docs/assets/screens/runs.svg) | ![Lineage](docs/assets/screens/lineage.svg) |
-| Tables | Quality | Models |
-| ![Tables](docs/assets/screens/tables.svg) | ![Quality](docs/assets/screens/quality.svg) | ![Models](docs/assets/screens/models.svg) |
 
 ## 2-minute demo
 
