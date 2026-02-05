@@ -1,0 +1,8 @@
+site_name: LakehouseOps Docs
+theme:
+  name: material
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - API: api.md
+  - Quality Rules: quality-rules.md

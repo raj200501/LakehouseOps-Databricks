@@ -1,0 +1,1 @@
+export function AdminPage(){return <div><h2>Admin</h2><p>Local RBAC seeded users: admin/analyst</p></div>}
