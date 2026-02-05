@@ -6,12 +6,17 @@
 A Databricks-style lakehouse control plane demo with medallion data assets, pipeline operations, quality monitoring, lineage exploration, and lightweight model registry workflows.
 
 
-## 2-minute demo
+## Quickstart
+
+Use the project virtual environment to avoid interpreter/package drift (especially from conda base Python environments, which can break local tooling resolution).
 
 ```bash
-make up      # terminal 1: api
-make ui      # terminal 2: web app
+make bootstrap        # creates .venv with python3.11 and installs deps
+make up               # terminal 1: api
+make ui               # terminal 2: web app
 ```
+
+## 2-minute demo
 
 1. Open `http://localhost:5173/` and click **Start demo**.
 2. Open **Runs** and inspect timeline/log/artifact detail dialog.
