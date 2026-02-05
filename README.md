@@ -5,17 +5,6 @@
 
 A Databricks-style lakehouse control plane demo with medallion data assets, pipeline operations, quality monitoring, lineage exploration, and lightweight model registry workflows.
 
-## Product Preview
-
-![Overview](docs/assets/screens/overview.svg)
-
-Additional screens:
-- ![Runs](docs/assets/screens/runs.svg)
-- ![Tables](docs/assets/screens/tables.svg)
-- ![Quality](docs/assets/screens/quality.svg)
-- ![Lineage](docs/assets/screens/lineage.svg)
-- ![Models](docs/assets/screens/models.svg)
-
 ## 2-minute demo
 
 ```bash
@@ -38,12 +27,14 @@ flowchart LR
   subgraph Web[apps/web React UI]
     Pages[Overview · Runs · Tables · Quality · Lineage · Models · Admin]
   end
-
+```
+```mermaid
   subgraph API[apps/api FastAPI]
     Endpoints[/overview/metrics\n/runs\n/datasets\n/quality\n/lineage\n/models\n/admin/demo/*]
     Services[demo seeding · run simulation · promotion]
   end
-
+```
+```mermaid
   subgraph Data[data + sqlite]
     DB[(SQLite)]
     Lake[data/raw bronze silver gold]
