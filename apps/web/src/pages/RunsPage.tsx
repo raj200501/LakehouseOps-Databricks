@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { Badge, Button, Modal, PageHeader, Table } from '../components/ui'
 
@@ -10,6 +11,7 @@ function toneForStatus(status: string): 'success' | 'failed' | 'running' {
 }
 
 export function RunsPage() {
+  const { runId } = useParams()
   const qc = useQueryClient()
   const [selected, setSelected] = useState<any>(null)
   const [search, setSearch] = useState('')
@@ -17,8 +19,23 @@ export function RunsPage() {
   const [status, setStatus] = useState('all')
   const [pipeline, setPipeline] = useState('all')
   const [timeRange, setTimeRange] = useState('14d')
-  const runs = useQuery({ queryKey: ['runs'], queryFn: async () => (await api.get('/runs')).data })
+  const runs = useQuery({
+    queryKey: ['runs'],
+    queryFn: async () => (await api.get('/runs')).data,
+    refetchInterval: (query) => {
+      const rows = (query.state.data ?? []) as any[]
+      return rows.some((r) => r.status === 'running') ? 2000 : false
+    },
+  })
   const gen = useMutation({ mutationFn: async () => (await api.post('/admin/demo/history')).data, onSuccess: () => qc.invalidateQueries() })
+
+  useEffect(() => {
+    if (!runId || !(runs.data ?? []).length) return
+    const matched = (runs.data as any[]).find((r) => String(r.id) === String(runId))
+    if (matched) {
+      setSelected(matched)
+    }
+  }, [runId, runs.data])
 
   const pipelines = useMemo(() => {
     const names = ((runs.data ?? []) as any[]).map((r) => String(r.pipeline_name))

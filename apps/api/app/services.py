@@ -266,7 +266,9 @@ def seed_demo_data(session: Session) -> dict[str, int]:
 def generate_run_history(session: Session, count: int = 30) -> dict[str, int]:
     now = datetime.utcnow()
     recent_runs = list(
-        session.exec(select(PipelineRun).where(PipelineRun.started_at > now - timedelta(days=14))).all()
+        session.exec(
+            select(PipelineRun).where(PipelineRun.started_at > now - timedelta(days=14))
+        ).all()
     )
     if len(recent_runs) >= count:
         return {"runs": 0, "existing": len(recent_runs)}
@@ -367,13 +369,16 @@ def build_lineage_graph(session: Session) -> dict:
         node_id = node["data"]["id"]
         dataset = session.exec(select(Dataset).where(Dataset.name == node_id)).first()
         quality_items = quality_by_dataset.get(node_id, [])
+        last_updated = (
+            dataset.updated_at.isoformat(timespec="seconds")
+            if dataset
+            else datetime.utcnow().isoformat(timespec="seconds")
+        )
         node["data"].update(
             {
                 "name": node_id,
                 "layer": dataset.layer if dataset else "model",
-                "last_updated": (
-                    dataset.updated_at.isoformat(timespec="seconds") if dataset else datetime.utcnow().isoformat(timespec="seconds")
-                ),
+                "last_updated": last_updated,
                 "last_run_status": latest_run.status if latest_run else "unknown",
                 "quality_pass_rate": round(
                     (len([q for q in quality_items if q.passed]) / len(quality_items) * 100), 1

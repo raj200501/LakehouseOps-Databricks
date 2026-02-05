@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
-import { Button, Card, PageHeader, Skeleton, StatCard } from '../components/ui'
+import { Button, Card, PageHeader, Skeleton, StatCard, Toast } from '../components/ui'
 import { MiniBarChart, MiniLineChart } from '../components/charts'
 
 export function OverviewPage() {
@@ -10,14 +10,10 @@ export function OverviewPage() {
   const metrics = useQuery({ queryKey: ['metrics'], queryFn: async () => (await api.get('/overview/metrics')).data })
   const run = useMutation({ mutationFn: async () => (await api.post('/runs', { pipeline_name: 'demo_pipeline' })).data, onSuccess: () => qc.invalidateQueries() })
   const startDemo = useMutation({
-    mutationFn: async () => {
-      await api.post('/admin/demo/seed')
-      const runResponse = await api.post('/runs', { pipeline_name: 'demo_pipeline' })
-      return runResponse.data
-    },
-    onSuccess: async () => {
+    mutationFn: async () => (await api.post('/admin/demo/start')).data,
+    onSuccess: async (data: { run_id: number }) => {
       await qc.invalidateQueries()
-      navigate('/runs')
+      navigate(`/runs/${data.run_id}`)
     },
   })
   const k = metrics.data?.kpis
@@ -31,6 +27,7 @@ export function OverviewPage() {
       <p style={{ marginTop: 0, opacity: 0.95 }}>Seed realistic medallion data, trigger orchestration, and jump straight to run details.</p>
       <Button onClick={() => startDemo.mutate()}>{startDemo.isPending ? 'Starting…' : 'Start demo'}</Button>
     </Card>
+    {startDemo.isSuccess ? <Toast message='Demo started' /> : null}
     {!k ? <Skeleton /> : <div className='grid kpi-grid'>
       <StatCard label='Runs last 24h' value={String(k.runs_24h)} delta='+12%' />
       <StatCard label='Success rate' value={`${k.success_rate}%`} delta='+1.1%' />

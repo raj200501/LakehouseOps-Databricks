@@ -32,6 +32,7 @@ export function App() {
       <Routes>
         <Route path='/' element={<OverviewPage />} />
         <Route path='/runs' element={<RunsPage />} />
+        <Route path='/runs/:runId' element={<RunsPage />} />
         <Route path='/tables' element={<TablesPage />} />
         <Route path='/quality' element={<QualityPage />} />
         <Route path='/lineage' element={<LineagePage />} />
