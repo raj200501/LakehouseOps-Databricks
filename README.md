@@ -11,7 +11,7 @@ A Databricks-style lakehouse control plane demo with medallion data assets, pipe
 Use the project virtual environment to avoid interpreter/package drift (especially from conda base Python environments, which can break local tooling resolution).
 
 ```bash
-make bootstrap        # creates .venv with python3.11 and installs deps
+make bootstrap        # creates .venv with python3.10+ and installs deps
 make up               # terminal 1: api
 make ui               # terminal 2: web app
 ```

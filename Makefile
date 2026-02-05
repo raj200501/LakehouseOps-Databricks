@@ -1,4 +1,6 @@
 PYTHON ?= python3.11
+PYTHON_MIN ?= 3.10
+PYTHON_CANDIDATES ?= python3.11 python3.10 python3
 VENV_DIR ?= .venv
 VENV_PY := $(VENV_DIR)/bin/python
 VENV_PIP := $(VENV_PY) -m pip
@@ -6,20 +8,28 @@ PYTHONPATH_DEV := apps/api:packages/common/src:packages/ml/src:packages/quality/
 
 .venv:
 	@PYTHON_BIN=""; \
-	for CANDIDATE in python3.11 python3; do \
-		if command -v $$CANDIDATE >/dev/null 2>&1 && $$CANDIDATE -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then \
+	if [ -n "$(PYTHON)" ]; then \
+		CANDIDATES="$(PYTHON) $(PYTHON_CANDIDATES)"; \
+	else \
+		CANDIDATES="$(PYTHON_CANDIDATES)"; \
+	fi; \
+	for CANDIDATE in $$CANDIDATES; do \
+		if command -v $$CANDIDATE >/dev/null 2>&1 && $$CANDIDATE -c 'import sys; min_v = tuple(int(x) for x in "$(PYTHON_MIN)".split(".")); raise SystemExit(0 if sys.version_info >= min_v else 1)' >/dev/null 2>&1; then \
 			PYTHON_BIN=$$CANDIDATE; \
 			break; \
 		fi; \
 	done; \
 	if [ -z "$$PYTHON_BIN" ] && command -v pyenv >/dev/null 2>&1; then \
-		PYENV_PY=$$(pyenv prefix 3.11 2>/dev/null)/bin/python3.11; \
-		if [ -x "$$PYENV_PY" ]; then \
-			PYTHON_BIN=$$PYENV_PY; \
-		fi; \
+		for VER in 3.11 3.10; do \
+			PYENV_PY=$$(pyenv prefix $$VER 2>/dev/null)/bin/python$$VER; \
+			if [ -x "$$PYENV_PY" ]; then \
+				PYTHON_BIN=$$PYENV_PY; \
+				break; \
+			fi; \
+		done; \
 	fi; \
 	if [ -z "$$PYTHON_BIN" ]; then \
-		echo "Error: Python 3.11+ is required. Install python3.11 and ensure python3/python3.11 is on PATH."; \
+		echo "Error: Python $(PYTHON_MIN)+ is required. Install python3.10+ and ensure python3/python3.10/python3.11 is on PATH."; \
 		exit 1; \
 	fi; \
 	echo "Using $$($$PYTHON_BIN --version 2>&1) to create virtualenv."; \

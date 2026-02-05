@@ -15,8 +15,8 @@ else
   MAJOR="${PYTHON_VERSION%%.*}"
   REST="${PYTHON_VERSION#*.}"
   MINOR="${REST%%.*}"
-  if (( MAJOR < 3 || (MAJOR == 3 && MINOR < 11) )); then
-    echo "Warning: Python ${PYTHON_VERSION} detected. Python 3.11+ is recommended for development." >&2
+  if (( MAJOR < 3 || (MAJOR == 3 && MINOR < 10) )); then
+    echo "Warning: Python ${PYTHON_VERSION} detected. Python 3.10+ is recommended for development." >&2
   fi
 fi
 
