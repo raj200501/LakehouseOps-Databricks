@@ -20,30 +20,6 @@ make ui      # terminal 2: web app
 6. Open **Lineage** and click nodes to highlight upstream/downstream paths.
 7. Open **Models** and click **Promote to Production**.
 
-## Architecture
-
-```mermaid
-flowchart LR
-  subgraph Web[apps/web React UI]
-    Pages[Overview · Runs · Tables · Quality · Lineage · Models · Admin]
-  end
-```
-```mermaid
-  subgraph API[apps/api FastAPI]
-    Endpoints[/overview/metrics\n/runs\n/datasets\n/quality\n/lineage\n/models\n/admin/demo/*]
-    Services[demo seeding · run simulation · promotion]
-  end
-```
-```mermaid
-  subgraph Data[data + sqlite]
-    DB[(SQLite)]
-    Lake[data/raw bronze silver gold]
-  end
-
-  Web --> API
-  API --> DB
-  API --> Lake
-```
 
 ## Feature highlights (Databricks feel)
 
